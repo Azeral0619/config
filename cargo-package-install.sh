@@ -5,6 +5,7 @@ pkgs=(
     fd-find
     git-delta
     tokei
+    tealdeer
 )
 
 for pkg in "${pkgs[@]}"; do
