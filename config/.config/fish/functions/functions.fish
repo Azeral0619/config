@@ -148,3 +148,7 @@ function compress
 
     echo "Compression complete: $destination"
 end
+
+function batfollow -a filename
+	tail -f $filename | bat --paging=never -l log
+end
