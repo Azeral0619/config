@@ -2,7 +2,7 @@ set -Ux MIRROR_TORCH_CONDA https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/p
 set -Ux MIRROR_PIP https://pypi.tuna.tsinghua.edu.cn/simple
 set -Ux MIRROR_TORCH_PIP https://mirrors.aliyun.com/pytorch-wheels
 
-function MMCV -a cuda_version torch_version
+function MMCV -a cuda_version torch_version -d "Return MMCV download url that fits cuda_version and torch_version"
     # 检查参数数量
     if test (count $argv) -ne 2
         echo "Usage: MMCV <cuda_version> <torch_version>"
@@ -25,19 +25,29 @@ function MMCV -a cuda_version torch_version
     end
 end
 
-function proxy_on
-    set http_proxy http://127.0.0.1:7890
-    set https_proxy https://127.0.0.1:7890
+function proxy_on -a port ip -d "Enable http/https proxy"
+    if test (count $argv) -gt 2
+        echo "Usage: proxy_on <port> <ip>"
+        echo "Example: proxy_on 7890 127.0.0.1"
+    end
+    if test -z $port
+        set port 7890
+    end
+    if test -z $ip
+        set ip 127.0.0.1
+    end
+    set -gx http_proxy "http://$ip:$port"
+    set -gx https_proxy "http://$ip:$port"
 end
 
-function proxy_off
+function proxy_off -d "Disable http/https proxy"
     set -e http_proxy
-    set -e https_proxy
+    set -e http_proxy
 end
 
-function extract
+function extract -d "All in one decompress"
     if test (count $argv) -eq 0
-        echo "Usage: extract <file1> <file2> ..."
+        echo "Usage: extract <file1 > < file2 >..."
         return 1
     end
 
@@ -86,21 +96,21 @@ function extract
     if test (count $success_files) -gt 0
         echo "Successfully extracted files:"
         for file in $success_files
-            echo "  - $file"
+            echo " - $file"
         end
     end
 
     if test (count $failed_files) -gt 0
         echo "Failed to extract files:"
         for file in $failed_files
-            echo "  - $file"
+            echo " - $file"
         end
     end
 end
 
-function compress
+function compress -d "All in one compress"
     if test (count $argv) -lt 2
-        echo "Usage: compress <source1> <source2> ... <destination>"
+        echo "Usage: compress <source1 > < source2 >... <destination >"
         return 1
     end
 
@@ -149,6 +159,17 @@ function compress
     echo "Compression complete: $destination"
 end
 
-function batfollow -a filename
-	tail -f $filename | bat --paging=never -l log
+function batfollow -a filename -d "bat with tail -f"
+    tail -f $filename | bat --paging=never -l log
+end
+
+function set_display -a _display screen -d "set env DISPLAY"
+    if test -z $_display
+        set _display 0
+    end
+    if test -z $screen
+        set screen 0
+    end
+    set ip (who | awk '{print $5}' | tr -d '()' | head -n 1)
+    set -gx DISPLAY "$ip:$_display.$screen"
 end
