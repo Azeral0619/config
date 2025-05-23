@@ -1,6 +1,6 @@
-set -Ux MIRROR_TORCH_CONDA https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/linux-64/
-set -Ux MIRROR_PIP https://pypi.tuna.tsinghua.edu.cn/simple
-set -Ux MIRROR_TORCH_PIP https://mirrors.aliyun.com/pytorch-wheels
+set -x MIRROR_TORCH_CONDA https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/linux-64/
+set -x MIRROR_PIP https://pypi.tuna.tsinghua.edu.cn/simple
+set -x MIRROR_TORCH_PIP https://mirrors.aliyun.com/pytorch-wheels
 
 function MMCV -a cuda_version torch_version -d "Return MMCV download url that fits cuda_version and torch_version"
     # 检查参数数量
@@ -34,7 +34,7 @@ function proxy_on -a port ip -d "Enable http/https proxy"
         set port 7890
     end
     if test -z $ip
-        set ip 127.0.0.1
+        set ip localhost
     end
     set -gx http_proxy "http://$ip:$port"
     set -gx https_proxy "http://$ip:$port"
@@ -42,7 +42,7 @@ end
 
 function proxy_off -d "Disable http/https proxy"
     set -e http_proxy
-    set -e http_proxy
+    set -e https_proxy
 end
 
 function extract -d "All in one decompress"
