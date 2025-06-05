@@ -18,14 +18,17 @@ function get_valid_paths() {
         fi
 
         while IFS= read -r matched_path; do
-            if [[ -n "$matched_path" ]]; then
+            if [[ -n "$matched_path" && -d "$matched_path" ]]; then
                 valid_paths[index]="$matched_path"
                 ((index++))
             fi
         done < <(find "$base_dir" -maxdepth 1 -iname "$name_pattern" 2>/dev/null)
     done
 
-    echo "${valid_paths[@]}"
+    # 只输出非空的有效路径
+    if [ ${#valid_paths[@]} -gt 0 ]; then
+        printf '%s\n' "${valid_paths[@]}"
+    fi
 }
 
 function choice_from_array() {
@@ -75,7 +78,7 @@ mapfile -t available_cuda_paths < <(get_valid_paths "${available_cuda_paths[@]}"
 
 if [ ${#available_cuda_paths[@]} -eq 0 ]; then
     print_warning "No CUDA installation found."
-    CUDA_HOME=
+    CUDA_HOME=""
 else
     # shellcheck disable=SC2068
     CUDA_HOME=$(choice_from_array ${available_cuda_paths[@]})
@@ -88,7 +91,7 @@ mapfile -t available_go_paths < <(get_valid_paths "${available_go_paths[@]}")
 
 if [ ${#available_go_paths[@]} -eq 0 ]; then
     print_warning "No Go installation found."
-    GO_ROOT=
+    GO_ROOT=""
 else
     # shellcheck disable=SC2068
     GO_ROOT=$(choice_from_array ${available_go_paths[@]})
@@ -100,7 +103,7 @@ available_nvim_paths=("/usr/local/nvim*" "$HOME/local/nvim*" "/opt/nvim*")
 mapfile -t available_nvim_paths < <(get_valid_paths "${available_nvim_paths[@]}")
 if [ ${#available_nvim_paths[@]} -eq 0 ]; then
     print_warning "No Neovim installation found."
-    NVIM_HOME=
+    NVIM_HOME=""
 else
     # shellcheck disable=SC2068
     NVIM_HOME=$(choice_from_array ${available_nvim_paths[@]})
@@ -112,7 +115,7 @@ available_cargo_paths=("$HOME/.cargo" "/usr/local/cargo" "/opt/cargo" "$HOME/loc
 mapfile -t available_cargo_paths < <(get_valid_paths "${available_cargo_paths[@]}")
 if [ ${#available_cargo_paths[@]} -eq 0 ]; then
     print_warning "No Cargo installation found."
-    CARGO_HOME=
+    CARGO_HOME=""
 else
     # shellcheck disable=SC2068
     CARGO_HOME=$(choice_from_array ${available_cargo_paths[@]})
@@ -124,7 +127,7 @@ available_tensorrt_paths=("/usr/local/TensorRT*" "$HOME/local/TensorRT*" "/opt/T
 mapfile -t available_tensorrt_paths < <(get_valid_paths "${available_tensorrt_paths[@]}")
 if [ ${#available_tensorrt_paths[@]} -eq 0 ]; then
     print_warning "No TensorRT installation found."
-    TENSORRT_HOME=
+    TENSORRT_HOME=""
 else
     # shellcheck disable=SC2068
     TENSORRT_HOME=$(choice_from_array ${available_tensorrt_paths[@]})
