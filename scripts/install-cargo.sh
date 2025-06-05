@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# Source the pretty print functions
+source scripts/functions/pretty_print.sh
+
+# Install Rustup if not already installed
+if ! command -v rustup &>/dev/null; then
+    print_info "Rustup not found. Installing Rustup (Y/n)"
+    read -r answer
+    if [[ -n "$answer" && ! "$answer" =~ ^[Yy]$ ]]; then
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh || {
+            print_error "Failed to install Rustup. Please install Rustup manually."
+            exit 1
+        }
+    else
+        print_warning "Skipping Rustup installation."
+        exit 0
+    fi
+fi
+
+# Ensure Cargo is available in the PATH
+if ! command -v cargo &>/dev/null; then
+    print_info "Adding Cargo to the PATH..."
+    source "$HOME/.cargo/env"
+fi
+
+# Mirror for Cargo registry
+CARGO_CONFIG_FILE="cargo/config.toml"
+CARGO_TARGET_CONFIG_DIR="$HOME/.cargo"
+if [ ! -d "$CARGO_TARGET_CONFIG_DIR" ]; then
+    mkdir -p "$CARGO_TARGET_CONFIG_DIR"
+fi
+
+# Copy Config File
+print_info "Copying Cargo configuration file..."
+rsync -a $CARGO_CONFIG_FILE "$CARGO_TARGET_CONFIG_DIR/"
+print_success "Cargo configuration file copied successfully."
+
+print_info "Installing Cargo packages (Y/n)"
+read -r answer
+
+if [[ -n "$answer" && ! "$answer" =~ ^[Yy]$ ]]; then
+    print_warning "Skipping Cargo package installation."
+    exit 0
+fi
+
+# Install Cargo packages
+pkgs=(
+    bat
+    du-dust
+    fd-find
+    git-delta
+    tokei
+    tealdeer
+    zellij # zellij setup --generate-completion fish > ~/.config/fish/completions/zellij.fish
+    ripgrep
+    sd
+    cargo-cache
+)
+
+for pkg in "${pkgs[@]}"; do
+    print_info "Installing $pkg..."
+    if cargo install "$pkg" --locked || cargo install "$pkg"; then
+        print_success "$pkg installed successfully."
+    else
+        print_error "Failed to install $pkg."
+    fi
+done
+
+print_success "All Cargo packages have been processed."

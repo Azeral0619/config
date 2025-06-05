@@ -1,0 +1,11 @@
+#!/bin/bash
+# 参数为需要替换的文件路径 作为sed的参数
+# 参数个数小于1时，提示错误
+if [ "$#" -lt 1 ]; then
+    echo "Usage: $0 <file1> [<file2> ...]"
+    exit 1
+fi
+
+sudo sed -i 's/ppa.launchpadcontent.net/launchpad.proxy.ustclug.org/g' "$@"
+sudo sed -i 's/ppa.launchpad.net/launchpad.proxy.ustclug.org/g' "$@"
+sudo sed -i 's/https/http/g' "$@"
