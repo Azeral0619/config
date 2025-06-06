@@ -1,20 +1,19 @@
 #!/bin/bash
 
 # Source the pretty print functions
-source scripts/functions/pretty_print.sh
+source scripts/functions/utils.sh
 
 # Install Rustup if not already installed
 if ! command -v rustup &>/dev/null; then
-    print_info "Rustup not found. Installing Rustup (Y/n)"
-    read -r answer
-    if [[ -n "$answer" && ! "$answer" =~ ^[Yy]$ ]]; then
+    if ! confirm "Rustup not found. Installing Rustup"; then
+        print_warning "Skipping Rustup installation."
+        exit 0
+    else
+        print_info "Installing Rustup..."
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh || {
             print_error "Failed to install Rustup. Please install Rustup manually."
             exit 1
         }
-    else
-        print_warning "Skipping Rustup installation."
-        exit 0
     fi
 fi
 
@@ -36,10 +35,19 @@ print_info "Copying Cargo configuration file..."
 rsync -a $CARGO_CONFIG_FILE "$CARGO_TARGET_CONFIG_DIR/"
 print_success "Cargo configuration file copied successfully."
 
-print_info "Installing Cargo packages (Y/n)"
-read -r answer
+if [[ -e "$HOME/.cargo" ]]; then
+    # TODO: bash
+    # fish
+    print_info "Setting up Cargo environment variables..."
+    if [[ -e "$HOME/.cargo/env.fish" ]]; then
+        echo "source \"$HOME/.cargo/env.fish\"" >~/.config/fish/conf.d/rustup.fish
+    else
+        echo "set -x PATH \"$HOME/.cargo/bin\" "'$PATH'"" >~/.config/fish/conf.d/rustup.fish
+    fi
+    print_success "Cargo environment variables configured."
+fi
 
-if [[ -n "$answer" && ! "$answer" =~ ^[Yy]$ ]]; then
+if ! confirm "Installing Cargo packages"; then
     print_warning "Skipping Cargo package installation."
     exit 0
 fi

@@ -1,13 +1,11 @@
 #!/bin/bash
 
 # Source the pretty print functions
-source scripts/functions/pretty_print.sh
+source scripts/functions/utils.sh
 
 # Install Git if not already installed
 if ! command -v git &>/dev/null; then
-    print_info "Git not found. Installing Git (Y/n)"
-    read -r answer
-    if [[ -n "$answer" && ! "$answer" =~ ^[Yy]$ ]]; then
+    if ! confirm "Git not found. Installing Git"; then
         print_warning "Skipping Git installation."
         exit 0
     else

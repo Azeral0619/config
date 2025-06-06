@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source the pretty print functions
-source scripts/functions/pretty_print.sh
+source scripts/functions/utils.sh
 
 # Copy Config File
 print_info "Setting up pip configuration..."

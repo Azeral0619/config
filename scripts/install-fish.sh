@@ -1,19 +1,15 @@
 #!/bin/bash
 
 # Source the pretty print functions
-source scripts/functions/pretty_print.sh
+source scripts/functions/utils.sh
 
 # Install Fish shell if not already installed
 if ! command -v fish &>/dev/null; then
-    print_info "Fish shell not found. Installing Fish shell (Y/n)"
-    read -r answer
-    if [[ -n "$answer" && ! "$answer" =~ ^[Yy]$ ]]; then
+    if ! confirm "Fish shell not found. Installing Fish shell"; then
         print_warning "Skipping Fish shell installation."
         exit 0
     else
-        print_info "Use package manager to install Fish shell (Y/n)"
-        read -r answer
-        if [[ -n "$answer" && ! "$answer" =~ ^[Yy]$ ]]; then
+        if ! confirm "Use package manager to install Fish shell?"; then
             print_error "UnImplemented installation method. Please install Fish shell manually."
             exit 1
         else

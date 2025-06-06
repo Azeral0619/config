@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source the pretty print functions
-source scripts/functions/pretty_print.sh
+source scripts/functions/utils.sh
 
 # Install omf if not already installed
 print_info "Installing Oh My Fish..."

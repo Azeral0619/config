@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source the pretty print functions
-source scripts/functions/pretty_print.sh
+source scripts/functions/utils.sh
 
 function shell_intergrate() {
     if ! command -v fzf &>/dev/null; then
@@ -27,9 +27,7 @@ function shell_intergrate() {
 
 # Install fzf if not already installed
 if ! command -v fzf &>/dev/null; then
-    print_info "fzf not found. Installing fzf (Y/n)"
-    read -r answer
-    if [[ -n "$answer" && ! "$answer" =~ ^[Yy]$ ]]; then
+    if ! confirm "fzf not found. Installing fzf"; then
         print_warning "Skipping fzf installation."
         exit 0
     else

@@ -1,13 +1,11 @@
 #!/bin/bash
 
 # Source the pretty print functions
-source scripts/functions/pretty_print.sh
+source scripts/functions/utils.sh
 
 # Install Node.js if not already installed
 if ! command -v node &>/dev/null; then
-    print_info "Node.js not found. Installing Node.js (Y/n)"
-    read -r answer
-    if [[ -n "$answer" && ! "$answer" =~ ^[Yy]$ ]]; then
+    if ! confirm "Node.js not found. Installing Node.js"; then
         print_warning "Skipping Node.js installation."
         exit 0
     else
@@ -39,6 +37,8 @@ if ! command -v node &>/dev/null; then
             print_success "Node.js has been installed successfully."
             exit 0
         fi
+
+        print_info "Installing Node.js via nvm..."
 
         if ! command -v fish &>/dev/null; then
             print_error "Fish shell is not installed. Please install Fish shell first."

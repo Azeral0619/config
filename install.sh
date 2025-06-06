@@ -1,20 +1,20 @@
 #!/bin/bash
 
 # Source the pretty print functions
-source scripts/functions/pretty_print.sh
+source scripts/functions/utils.sh
 
 scripts=(
+	"install-fish.sh"
 	"install-conda.sh"
 	"install-fzf.sh"
 	"install-go.sh"
 	"install-nvim.sh"
 	"install-cargo.sh"
-	"install-fish.sh"
 	"install-git.sh"
 	"install-node.sh"
 	"install-omf.sh"
 	"install-pip.sh"
-	"install-path.sh"
+	"install-others.sh"
 )
 
 if [ $# -eq 0 ] || [ "$1" == "all" ]; then

@@ -1,17 +1,26 @@
 #!/bin/bash
 
 # Source the pretty print functions
-source scripts/functions/pretty_print.sh
+source scripts/functions/utils.sh
+
+# check go is installed (/usr/local/go、~/local/go、/opt/go)
+available_go_paths=("/usr/local/go" "$HOME/local/go" "/opt/go")
+mapfile -t available_go_paths < <(get_valid_paths "${available_go_paths[@]}")
+
+if [ ${#available_go_paths[@]} -eq 0 ]; then
+    GO_ROOT=""
+else
+    # shellcheck disable=SC2068
+    GO_ROOT=$(choice_from_array ${available_go_paths[@]})
+    print_info "Selected Go installation: $GO_ROOT"
+fi
 
 # Install GO if not already installed
-if ! command -v go &>/dev/null; then
-    print_info "Go not found. Installing Go (Y/n)"
-    read -r answer
-    if [[ -n "$answer" && ! "$answer" =~ ^[Yy]$ ]]; then
+if [[ -z $GO_ROOT ]]; then
+    if ! confirm "Go not found. Installing Go"; then
         print_warning "Skipping Go installation."
         exit 0
     else
-        source scripts/functions/judge_permission.sh
         print_info "Installing Go..."
         url_prefix="https://go.dev/dl/"
 
@@ -104,9 +113,18 @@ if ! command -v go &>/dev/null; then
         "$go_path/bin/go" env -w GO111MODULE=on || print_warning "Failed to set GO111MODULE"
         "$go_path/bin/go" env -w GOPROXY=https://goproxy.cn,direct || print_warning "Failed to set GOPROXY"
         print_success "Go environment configured successfully."
+        GO_ROOT="$go_path"
     fi
-else
-    print_info "Go is already installed."
+fi
+
+if [[ -n "$GO_ROOT" ]]; then
+    # TODO: bash
+    # fish
+    print_info "Setting up Go environment variables..."
+    echo "set -x GOPATH "'$HOME'"/go
+set -x GOROOT $GO_ROOT
+set -x PATH "'$GO_ROOT'"/bin "'$PATH'"" >~/.config/fish/conf.d/go.fish
+    print_success "Go environment variables configured."
 fi
 
 print_success "Go setup completed."

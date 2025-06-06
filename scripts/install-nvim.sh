@@ -1,20 +1,30 @@
 #!/bin/bash
 
 # Source the pretty print functions
-source scripts/functions/pretty_print.sh
+source scripts/functions/utils.sh
+
+# check nvim is installed (/usr/local/nvim*、~/local/nvim*、/opt/nvim*)
+available_nvim_paths=("/usr/local/nvim*" "$HOME/local/nvim*" "/opt/nvim*")
+mapfile -t available_nvim_paths < <(get_valid_paths "${available_nvim_paths[@]}")
+if [[ ${#available_nvim_paths[@]} -eq 0 ]]; then
+    if [[ -e "/usr/bin/nvim" ]]; then
+        NVIM_HOME="/usr/bin"
+    else
+        NVIM_HOME=""
+    fi
+else
+    # shellcheck disable=SC2068
+    NVIM_HOME=$(choice_from_array ${available_nvim_paths[@]})
+    print_info "Selected Neovim installation: $NVIM_HOME"
+fi
 
 # Install nvim if not already installed
-if ! command -v nvim &>/dev/null; then
-    print_info "nvim not found. Installing nvim (Y/n)"
-    read -r answer
-    if [[ -n "$answer" && ! "$answer" =~ ^[Yy]$ ]]; then
-        print_warning "Skipping nvim installation."
+if [[ -z "$NVIM_HOME" ]]; then
+    if ! confirm "Neovim not found. Installing Neovim"; then
+        print_warning "Skipping Neovim installation."
         exit 0
     else
-        print_info "Use package manager to install nvim (y/N)"
-        read -r answer
-        if [[ -z "$answer" || ! "$answer" =~ ^[Yy]$ ]]; then
-            source scripts/functions/judge_permission.sh
+        if confirm_no "Use package manager to install Neovim"; then
             print_info "Preparing to download Neovim..."
             arch=$(uname -m)
             os=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -68,12 +78,9 @@ if ! command -v nvim &>/dev/null; then
             else
                 print_error "Unsupported package manager. Please install Neovim manually."
                 exit 1
-                print_success "Neovim installed successfully via package manager."
             fi
         fi
     fi
-else
-    print_info "Neovim is already installed."
 fi
 
 # Copy Neovim configuration files
@@ -86,6 +93,14 @@ fi
 # Copy Config File
 print_info "Copying Neovim configuration files..."
 rsync -a "$NVIM_CONFIG_DIR/" "$NVIM_TARGET_CONFIG_DIR/"
+
+if [[ -n "$NVIM_HOME" ]] && [[ "$NVIM_HOME" != "/usr/bin" ]]; then
+    # TODO: bash
+    # fish
+    print_info "Setting up Neovim environment variables..."
+    echo "set -x PATH $NVIM_HOME/bin "'$PATH'"" >~/.config/fish/conf.d/nvim.fish
+    print_success "Neovim environment variables configured."
+fi
 
 # Final success message
 print_success "Neovim setup completed."

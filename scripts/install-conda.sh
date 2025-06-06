@@ -1,13 +1,20 @@
 #!/bin/bash
 
 # Source the pretty print functions
-source scripts/functions/pretty_print.sh
+source scripts/functions/utils.sh
 
-# Install Miniconda if not already installed
-if ! command -v conda &>/dev/null; then
-    print_info "Conda not found. Installing Miniconda (Y/n)"
-    read -r answer
-    if [[ -n "$answer" && ! "$answer" =~ ^[Yy]$ ]]; then
+available_conda_paths=("$HOME/miniconda3" "$HOME/miniconda" "/opt/miniconda3" "/opt/miniconda" "$HOME/anaconda3" "$HOME/anaconda" "/opt/anaconda3" "/opt/anaconda" "/usr/local/miniconda3" "/usr/local/miniconda" "/usr/local/anaconda3" "/usr/local/anaconda")
+mapfile -t available_conda_paths < <(get_valid_paths "${available_conda_paths[@]}")
+if [ ${#available_conda_paths[@]} -eq 0 ]; then
+    CONDA_HOME=""
+else
+    # shellcheck disable=SC2068
+    CONDA_HOME=$(choice_from_array ${available_conda_paths[@]})
+    print_info "Selected Conda installation: $CONDA_HOME"
+fi
+if [ -z "$CONDA_HOME" ]; then
+    # Install Miniconda if not already installed
+    if ! confirm "Conda not found. Installing MiniConda"; then
         print_warning "Skipping Miniconda installation."
         exit 0
     else
@@ -24,10 +31,6 @@ if ! command -v conda &>/dev/null; then
             conda_path=~/miniconda3
         fi
 
-        if [ "$(type -t judge_permission)" != function ]; then
-            source scripts/functions/judge_permission.sh
-        fi
-
         eval "$(judge_permission "$conda_path")" bash /tmp/miniconda.sh -b -u -p "$conda_path" || {
             print_error "Miniconda installation failed."
             exit 1
@@ -35,6 +38,7 @@ if ! command -v conda &>/dev/null; then
 
         rm /tmp/miniconda.sh
         print_success "Miniconda installed successfully."
+        CONDA_HOME="$conda_path"
     fi
 fi
 
@@ -47,3 +51,13 @@ fi
 print_info "Copying conda configuration file..."
 rsync -a "$CONDA_CONFIG_FILE" "$CONDA_TARGET_CONFIG_DIR/"
 print_success "Conda configuration completed."
+
+if [[ -n "$CONDA_HOME" ]]; then
+    # TODO: bash
+    # fish
+    print_info "Setting up Conda environment variables..."
+    eval "$CONDA_HOME/bin/conda init fish" || {
+        print_error "Failed to initialize Conda for Fish shell. Please check your Conda installation."
+        exit 1
+    }
+fi
