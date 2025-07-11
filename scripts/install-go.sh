@@ -123,7 +123,7 @@ if [[ -n "$GO_ROOT" ]]; then
     print_info "Setting up Go environment variables..."
     echo "set -x GOPATH "'$HOME'"/go
 set -x GOROOT $GO_ROOT
-set -x PATH "'$GO_ROOT'"/bin "'$PATH'"" >~/.config/fish/conf.d/go.fish
+set -x PATH "'$GOROOT'"/bin "'$PATH'"" >~/.config/fish/conf.d/go.fish
     print_success "Go environment variables configured."
 fi
 
